@@ -5,8 +5,8 @@ open Utils
 module F =
 
     let parseSpec (s: string) =
-        let [| range; letter |] = s.Split(' ')
-        let [| rmin; rmax |] = range.Split('-') |> Array.map int
+        let ( range, letter ) = pairSplit " " s
+        let ( rmin, rmax ) = pairSplit "-" range |> fun (a,b) -> (int a, int b)
         (rmin, rmax, letter)
 
     let validator (spec: int * int * string) =
@@ -28,7 +28,7 @@ module F =
             (a = c) <> (b = c)
 
     let splitIns (s: string) =
-        let [| spec; inp |] = s.Split(':')
+        let (spec, inp) = pairSplit ":" s
         (spec, inp.Substring(1))
 
 let solve validator =
