@@ -1,6 +1,7 @@
 module Day09
 
 open Utils
+open System.Collections.Immutable
 
 let hasPairThatSums x xs =
     Seq.allPairs xs xs
@@ -8,27 +9,21 @@ let hasPairThatSums x xs =
 
 let findInvalidNumber preamble input =
     input
-    |> Seq.map System.Numerics.BigInteger.Parse
+    |> Seq.map bigint.Parse
     |> Seq.windowed (preamble + 1)
     |> Seq.filter (fun xs -> not <| hasPairThatSums (Seq.last xs) (Seq.take preamble xs))
     |> Seq.map Seq.last
     |> Seq.head
 
-let headIsSum (xs: bigint seq) (x: bigint) =
-    let headUntilX =
-        xs
-        |> Seq.scan (fun (i,sum) x -> (i+1,sum+x)) (0, bigint 0)
-        |> Seq.skipWhile (snd >> ((>) x))
-        |> Seq.head
-    
-    if (snd headUntilX) = x
-    then Some(fst headUntilX)
-    else None    
-
-let rec findContiguousSum xs (x: bigint) =
-    match headIsSum xs x with
-    | Some(range) -> (Seq.take range >> Seq.min) xs, (Seq.take range >> Seq.max) xs
-    | None -> findContiguousSum (Seq.tail xs) x
+let rec findContiguousSum (xs: bigint list) (q: ImmutableQueue<bigint>) acc x =
+    match acc - x with
+    | a when a > bigint 0 -> let qhead = q.Peek ()
+                             let qtail = q.Dequeue ()
+                             findContiguousSum xs (qtail) (acc - qhead) x
+    | a when a < bigint 0 -> let xhead = List.head xs
+                             let xtail = List.tail xs
+                             findContiguousSum xtail (q.Enqueue xhead) (acc + xhead) x
+    | _ -> (Seq.min q), (Seq.max q)
 
 let solve1 () =
 
@@ -49,8 +44,8 @@ let solve2 () =
     let input = 
         readLines 9
         |> Seq.map System.Numerics.BigInteger.Parse
-        |> Seq.toArray
+        |> Seq.toList
 
-    findContiguousSum input invalidNumber
+    findContiguousSum input (ImmutableQueue.Empty) (bigint 0) invalidNumber
     |> fun (a,b) -> a + b
     |> string
