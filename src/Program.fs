@@ -21,6 +21,7 @@ let main argv =
         Day09.solve1 ; Day09.solve2
         Day10.solve1 ; Day10.solve2
         Day11.solve1 ; Day11.solve2
+        Day12.solve1 ; Day12.solve2
     |]
 
     printfn "%s" ((Seq.last solvers)())
